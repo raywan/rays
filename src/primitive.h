@@ -52,7 +52,7 @@ struct IntersectInfo {
   Material *material;
 };
 
-Sphere sphere_create(float radius, Vec3 world_pos);
+Sphere sphere_create(Vec3 world_pos, float radius);
 bool sphere_intersect(Sphere *s, Ray *r, IntersectInfo *out_ii);
 Rect3 sphere_get_bounds(Sphere *s);
 bool triangle_intersect(Triangle *tri, Ray *r, IntersectInfo *out_ii);

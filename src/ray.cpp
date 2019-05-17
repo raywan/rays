@@ -1,6 +1,7 @@
 #include "ray.h"
 #include <math.h>
 #include <stdlib.h>
+#include <algorithm>
 
 Ray ray_init(Vec3 origin, Vec3 dir) {
   Ray result;

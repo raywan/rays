@@ -27,7 +27,7 @@ bool solve_quadratic(const float a, const float b, const float c, float *x0, flo
   return true;
 }
 
-Sphere sphere_create(float radius, Vec3 world_pos) {
+Sphere sphere_create(Vec3 world_pos, float radius) {
   Sphere result;
   result.radius = radius;
   result.position = world_pos;

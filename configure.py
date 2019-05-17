@@ -69,7 +69,8 @@ with open('build.ninja', 'w') as build_file:
 	sources = []
 	for root, dirnames, filenames in os.walk(SRC_DIR):
 		for filename in fnmatch.filter(filenames, '*.cpp'):
-			sources.append(os.path.join(root, filename))
+                        if 'win32_' not in filename:
+                                sources.append(os.path.join(root, filename))
 
 	for source in sources:
 		n.build(outputs=source.replace(".cpp", ".o").replace('src', BUILD_DIR),

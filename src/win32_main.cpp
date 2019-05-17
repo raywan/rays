@@ -1,5 +1,6 @@
+#include <windows.h>
+#include <assert.h>
 #include <stdio.h>
-#include <pthread.h>
 #include <queue>
 
 #include <rw/rw_time.h>
@@ -17,25 +18,28 @@
 #include "utils.h"
 #include "metrics.h"
 
-pthread_mutex_t jq_mutex;
+HANDLE jq_mutex;
 
-void *worker(void *t_arg) {
+unsigned int worker(void *t_arg) {
   WorkerData *data = (WorkerData *) t_arg;
   while (1) {
-    // Try to take from the job queue
-    pthread_mutex_lock(&jq_mutex);
-    if (data->job_queue->size() == 0) {
-      pthread_mutex_unlock(&jq_mutex);
-      break;
+    switch (WaitForSingleObject(jq_mutex, 0xFFFFFFFF)) {
+      case WAIT_OBJECT_0: {
+	if (data->job_queue->size() == 0) {
+	  ReleaseMutex(jq_mutex);
+	  return 1;
+	}
+	Tile t = data->job_queue->front();
+	data->job_queue->pop();
+	ReleaseMutex(jq_mutex);
+	// Do work
+	render(data, t);
+      } break;
+      case WAIT_ABANDONED:
+	return 0;
     }
-    Tile t = data->job_queue->front();
-    data->job_queue->pop();
-    pthread_mutex_unlock(&jq_mutex);
-
-    // Do work
-    render(data, t);
   }
-  pthread_exit(NULL);
+  return 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -87,24 +91,33 @@ int main(int argc, char *argv[]) {
 
 #if NUM_THREADS != 1
   puts("Begin multithreaded tracing...");
-  pthread_mutex_init(&jq_mutex, NULL);
+
   std::queue<Tile> job_queue;
   construct_tiles(&job_queue);
-  pthread_t threads[NUM_THREADS];
+
+  HANDLE threads[NUM_THREADS];
   WorkerData worker_data[NUM_THREADS];
-  int rc;
-  // Create workers
+
+  jq_mutex = CreateMutex(NULL, false, NULL);
+  if (jq_mutex == NULL) {
+    puts("Create jq_mutex failed");
+    return 1;
+  }
+
+  unsigned long tid;
   for (int i = 0; i < NUM_THREADS; i++) {
     worker_data[i].tid = i;
     worker_data[i].job_queue = &job_queue;
     worker_data[i].film = data;
     worker_data[i].world = &world;
     worker_data[i].camera = &camera;
-    rc = pthread_create(&threads[i], NULL, worker, (void *) &worker_data[i]);
+    threads[i] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE) worker, &worker_data[i], 0, &tid);
   }
+  WaitForMultipleObjects(NUM_THREADS, threads, TRUE, 0xFFFFFFFF);
   for (int i = 0; i < NUM_THREADS; i++) {
-    pthread_join(threads[i], NULL);
+    CloseHandle(threads[i]);
   }
+  CloseHandle(jq_mutex);
 #else
   // Begin tracing
   puts("Begin tracing...");

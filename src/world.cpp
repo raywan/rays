@@ -13,14 +13,14 @@ void create_world(World *world) {
   puts("Creating world...");
   // world->spheres.push_back((Sphere) {rwm_v3_init(0,0.25,-0.8), 0.5});
   // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-0.5), 0.5});
-  world->spheres.push_back((Sphere) {rwm_v3_init(0.6,0.12,0.0), 0.25});
-  world->spheres.push_back((Sphere) {rwm_v3_init(0,0.25,-0.5), 0.5});
+  world->spheres.push_back(sphere_create(rwm_v3_init(0.6,0.12,0.0), 0.25));
+  world->spheres.push_back(sphere_create(rwm_v3_init(0,0.25,-0.5), 0.5));
   // world->spheres.push_back((Sphere) {rwm_v3_init(1,0.25,-1), 0.5});
   // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-1), 0.5});
   // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-2), 1.5});
-  world->sphere_materials.push_back((Material) {M_REFLECT, rwm_v3_init(1.0, 1.0, 1.0)});
+  world->sphere_materials.push_back({M_REFLECT, rwm_v3_init(1.0, 1.0, 1.0)});
   // world->sphere_materials.push_back((Material) {M_RR, rwm_v3_init(1.0, 1.0, 1.0), 1.55});
-  world->sphere_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 0.0, 0.0)});
+  world->sphere_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 0.0, 0.0)});
   // world->sphere_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
 
   // world->planes.push_back((Plane) {rwm_v3_init(0,-0.5,-1), rwm_v3_init(0,1.0,0)});
@@ -35,10 +35,10 @@ void create_world(World *world) {
   // world->meshes.push_back(&suz);
   world->meshes.push_back(plane);
   // world->mesh_materials.push_back((Material) {M_REFLECT, rwm_v3_zero()});
-  world->mesh_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, true});
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, true});
   puts("Adding lights");
 
-  world->lights.push_back((Light) {
+  world->lights.push_back({
       LT_SPHERE,
       rwm_v3_init(2.0, 2.0, 1.0), // position
       rwm_v3_init(1.0f, 1.0f, 1.0f), // color
@@ -53,7 +53,7 @@ void create_world(World *world) {
   // });
 
 #if 1
-  world->lights.push_back((Light) {
+  world->lights.push_back({
       LT_DIRECTION,
       rwm_v3_zero(),
       rwm_v3_init(1.0f, 1.0f, 1.0f), // color
