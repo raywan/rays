@@ -1,5 +1,6 @@
 #include "bvh.h"
 #include "mesh.h"
+#include "world.h"
 
 #define BOUND_MESH 1
 
@@ -17,26 +18,21 @@ std::vector<BVHPrimitive> bvh_preprocess_world(World *w) {
   // Spheres
   for (int i = 0; i < w->spheres.size(); i++) {
     BVHPrimitive prim;
-    prim.type = PT_SPHERE;
     prim.idx = i;
+    prim.type = PT_SPHERE;
     prim.bounds = sphere_get_bounds(&w->spheres[i]);
     prim.centroid = 0.5 * prim.bounds.min_p + 0.5f * prim.bounds.max_p;
-    result.push_back(prim);
+   result.push_back(prim);
   }
   // Meshes
   for (int i = 0; i < w->meshes.size(); i++) {
-#if BOUND_MESH
-    BVHPrimitive prim;
-    prim.idx = i;
-    prim.type = PT_MESH;
-    prim.bounds = mesh_get_bounds(w->meshes[i]);
-    prim.centroid = 0.5 * prim.bounds.min_p + 0.5f * prim.bounds.max_p;
-    result.push_back(prim);
-#else
     // Loop through each triangle in the mesh
     int cur_v_idx = 0;
     Mesh *cur_mesh = w->meshes[i];
+    BVHPrimitive prim;
+    prim.idx = i;
     for (int j = 0; j < cur_mesh->f.size(); j++) {
+      prim.f_idx = j;
       // Intialize the bounds with one point of the triangle
       prim.bounds = rwm_r3_init_p(cur_mesh->v[cur_mesh->v_idx[cur_v_idx++]]);
       for (int k = 1; k < cur_mesh->f[j]; k++) {
@@ -47,19 +43,58 @@ std::vector<BVHPrimitive> bvh_preprocess_world(World *w) {
       prim.centroid = 0.5 * prim.bounds.min_p + 0.5f * prim.bounds.max_p;
       result.push_back(prim);
     }
-#endif
+  }
 
   return result;
 }
 
-BVHNode *bvh_recursive_build() {
+BVHNode *bvh_recursive_build(std::vector<BVHPrimitive> *prims, int lo, int hi) {
+  // Calculate total bounds of the primitives
+  BVHNode *node = (BVHNode *) malloc(sizeof(BVHNode));
+  // NOTE(ray): I don't think i need to do this computation here
+  Rect3 total_bounds = (*prims)[lo].bounds;
+  for (int i = lo + 1; i < hi; i++) {
+    total_bounds = rwm_r3_union(total_bounds, (*prims)[i].bounds);
+  }
+
+  int n_primitives = hi - lo;
+
+  if (n_primitives == 1) {
+    node->leaf = true;
+    node->left = NULL;
+    node->right = NULL;
+    node->bounds = total_bounds;
+    node->prim_idx = lo;
+  } else {
+    // Partition based on the centroid
+    Rect3 centroid_bounds = rwm_r3_init_p((*prims)[lo].centroid);
+    for (int i = lo + 1; i < hi; i++) {
+      centroid_bounds = rwm_r3_union_p(centroid_bounds, (*prims)[i].centroid);
+    }
+    int axis = rwm_r3_max_extent(centroid_bounds);
+    int mid = (hi - lo)/2;
+    if (centroid_bounds.max_p.e[axis] == centroid_bounds.min_p.e[axis]) {
+      node->leaf = true;
+      node->left = NULL;
+      node->right = NULL;
+      node->bounds = total_bounds;
+      node->prim_idx = lo;
+    } else {
+      node->left = bvh_recursive_build(prims, lo, mid);
+      node->right = bvh_recursive_build(prims, mid, hi);
+      node->bounds = rwm_r3_union(node->left->bounds, node->right->bounds);
+      node->split_axis = axis;
+    }
+  }
+  return node;
 }
 
 BVHNode *bvh_build(World *world) {
-  // Process world, loop over all primitives and meshes to create BVHPrimitives
-  // bvh_recursive_build();
+  std::vector<BVHPrimitive> prims = bvh_preprocess_world(world);
+  BVHNode *root = bvh_recursive_build(&prims, 0, prims.size());
+  return root;
 }
 
 bool bvh_intersect(Ray *r, IntersectInfo *ii) {
-
+  return false;
 }

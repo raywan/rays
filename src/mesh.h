@@ -45,4 +45,3 @@ Rect3 mesh_get_bounds(Mesh *m);
 Mesh mesh_make_plane();
 
 #endif
-

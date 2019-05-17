@@ -219,4 +219,3 @@ Mesh mesh_make_plane() {
 
   return result;
 }
-

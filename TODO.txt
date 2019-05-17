@@ -1,0 +1,4 @@
+[ ] build.bat for Windows
+[ ] Create Windows entry point i.e. win32_main.cpp
+[ ] Tile size independent multithreaded rendering
+      - Height and width are must be multiples of the tile size currently

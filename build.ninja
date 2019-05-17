@@ -24,9 +24,19 @@ rule create_sym_link
 build dirs: make_dirs
 build fresh: clean_all
 build sym: create_sym_link
+build build/bvh.o: compile src/bvh.cpp
+build build/render.o: compile src/render.cpp
+build build/utils.o: compile src/utils.cpp
 build build/mesh.o: compile src/mesh.cpp
+build build/camera.o: compile src/camera.cpp
+build build/metrics.o: compile src/metrics.cpp
+build build/ray.o: compile src/ray.cpp
+build build/primitive.o: compile src/primitive.cpp
+build build/world.o: compile src/world.cpp
 build build/main.o: compile src/main.cpp
-build toy: link build/mesh.o build/main.o
+build toy: link build/bvh.o build/render.o build/utils.o build/mesh.o $
+    build/camera.o build/metrics.o build/ray.o build/primitive.o $
+    build/world.o build/main.o
 
 default dirs
 default toy

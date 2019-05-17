@@ -2,22 +2,18 @@
 #define __BVH_H__
 
 #include <rw/rw_math.h>
+#include "primitive.h"
+
+struct World;
 
 struct BVHNode {
   Rect3 bounds;
+  int prim_idx;
   int split_axis;
-  int left;
-  int right;
+  BVHNode *left;
+  BVHNode *right;
   bool leaf;
 };
-
-enum PrimitiveType {
-  PT_SPHERE,
-  PT_TRIANGLE,
-  PT_PLANE,
-  PT_MESH,
-};
-
 
 struct BVHPrimitive {
   int idx;
@@ -28,5 +24,7 @@ struct BVHPrimitive {
 };
 
 std::vector<BVHPrimitive> bvh_preprocess_world(World *w);
+BVHNode *bvh_build(World *world);
+bool bvh_intersect(Ray *r, IntersectInfo *ii);
 
 #endif
