@@ -25,18 +25,18 @@ unsigned int worker(void *t_arg) {
   while (1) {
     switch (WaitForSingleObject(jq_mutex, 0xFFFFFFFF)) {
       case WAIT_OBJECT_0: {
-	if (data->job_queue->size() == 0) {
-	  ReleaseMutex(jq_mutex);
-	  return 1;
-	}
-	Tile t = data->job_queue->front();
-	data->job_queue->pop();
-	ReleaseMutex(jq_mutex);
-	// Do work
-	render(data, t);
+        if (data->job_queue->size() == 0) {
+          ReleaseMutex(jq_mutex);
+          return 1;
+        }
+        Tile t = data->job_queue->front();
+        data->job_queue->pop();
+        ReleaseMutex(jq_mutex);
+        // Do work
+        render(data, t);
       } break;
       case WAIT_ABANDONED:
-	return 0;
+        return 0;
     }
   }
   return 1;
