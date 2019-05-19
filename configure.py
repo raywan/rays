@@ -6,12 +6,12 @@ import sys
 import fnmatch
 from ninja_syntax import Writer
 
-PROJECT_NAME = 'toy'
+PROJECT_NAME = 'toy' if sys.platform != 'win32' else 'toy.exe'
 
 CC = 'g++' if sys.platform != 'win32' else 'cl'
 CFLAGS = []
 if sys.platform == 'win32':
-    CFLAGS = ['/O2', '/EHsc', '/Zi', '/I..\include']
+    CFLAGS = ['-O2', '-EHsc', '-Zo', '/fp:fast', '-Iinclude']
 else:
     CFLAGS = ['-std=c++11', '-O3', '-pthread', '-march=native', '-Iinclude']
 
@@ -46,21 +46,24 @@ with open('build.ninja', 'w') as build_file:
     ############################################################################
 
     if sys.platform == 'win32':
-        n.rule('compile', command='$cc $cflags /c $in /Fo$build_dir')
+        n.rule('compile', command='$cc $cflags -c $in -Fo$out')
     else:
         n.rule('compile',
                command='$cc $cflags -c $in -o $out -MMD -MF $out.d',
                depfile='$out.d')
 
     if sys.platform == 'win32':
-        n.rule('link', command='link $in /OUT:$bin_dir/$out')
+        n.rule('link', command='link $in /OUT:$out')
     else:
         n.rule('link', command='$cc $in -o $bin_dir/$out')
 
     n.rule('clean_all', command='rm -rf $build_dir $bin_dir $project_name')
-    n.rule('make_dirs', command='mkdir -p $build_dir $bin_dir')
     if sys.platform == 'win32':
-        n.rule('create_sym_link', command='mklink $bin_dir/$project_name $project_name')
+        n.rule('make_dirs', command='cmd /c if not exist $build_dir mkdir $build_dir')
+    else:
+        n.rule('make_dirs', command='mkdir -p $build_dir $bin_dir')
+    if sys.platform == 'win32':
+        n.rule('create_sym_link', command='cmd /c mklink $project_name.exe $build_dir\$project_name.exe')
     else:
         n.rule('create_sym_link', command='ln -sf $bin_dir/$project_name $project_name')
 
@@ -77,12 +80,20 @@ with open('build.ninja', 'w') as build_file:
     sources = []
     for (root, dirnames, filenames) in os.walk(SRC_DIR):
         for filename in fnmatch.filter(filenames, '*.cpp'):
-            if 'win32_' not in filename:
+            if sys.platform != 'win32' and 'win32_' not in filename:
+                sources.append(os.path.join(root, filename))
+            elif filename != 'main.cpp':
                 sources.append(os.path.join(root, filename))
 
+
     for source in sources:
-        n.build(outputs=source.replace('.cpp', '.o').replace('src',
-                BUILD_DIR), rule='compile', inputs=source)
+        if sys.platform == 'win32':
+            n.build(outputs=source.replace('.cpp', '.obj').replace('src',
+                    BUILD_DIR), rule='compile', inputs=source)
+        else:
+            n.build(outputs=source.replace('.cpp', '.o').replace('src',
+                    BUILD_DIR), rule='compile', inputs=source)
+
 
     o_files = []
     if sys.platform == 'win32':
@@ -100,5 +111,5 @@ with open('build.ninja', 'w') as build_file:
 
     n.default('dirs')
     n.default(PROJECT_NAME)
-    n.default('sym')
-
+    if sys.platform != 'win32':
+        n.default('sym')

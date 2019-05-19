@@ -711,3 +711,4 @@ toy
 renders
 *.png
 render.png
+build.ninja
