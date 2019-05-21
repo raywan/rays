@@ -82,7 +82,7 @@ with open('build.ninja', 'w') as build_file:
         for filename in fnmatch.filter(filenames, '*.cpp'):
             if sys.platform != 'win32' and 'win32_' not in filename:
                 sources.append(os.path.join(root, filename))
-            elif filename != 'main.cpp':
+            elif sys.platform == 'win32' and filename != 'main.cpp':
                 sources.append(os.path.join(root, filename))
 
 
