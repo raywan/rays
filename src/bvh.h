@@ -17,14 +17,18 @@ struct BVHNode {
 
 struct BVHPrimitive {
   int idx;
-  int f_idx; // for meshes
+  int p_idx;
   PrimitiveType type;
   Rect3 bounds;
   Point3 centroid;
+  // For meshes
+  int mesh_idx;
+  int f_idx; 
 };
 
 std::vector<BVHPrimitive> bvh_preprocess_world(World *w);
 BVHNode *bvh_build(World *world);
-bool bvh_intersect(Ray *r, IntersectInfo *ii);
+// bool bvh_intersect(BVHNode *root, Ray *r, IntersectInfo *ii);
+bool bvh_intersect(BVHNode *root, Ray *r, BVHNode *out_node);
 
 #endif

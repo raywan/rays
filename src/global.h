@@ -12,11 +12,11 @@
 #define MAX_DEPTH 2
 #define SAMPLES_PER_PIXEL 4
 
-#define USE_GLOBAL_ILLUMINATION 1
+#define USE_GLOBAL_ILLUMINATION 0
 #define NUM_PT_SAMPLES 32
 
 #define TILE_X 16
 #define TILE_Y 16
-#define NUM_THREADS 8
+#define NUM_THREADS 1
 
 #endif
