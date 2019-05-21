@@ -54,19 +54,60 @@ bool trace(World *world, Ray *r, IntersectInfo *out_ii) {
   bool did_intersect = false;
 #if 1
   Ray bb_ray = *r;
+  BVHNode *out_node = NULL;
+  if (bvh_intersect(world->bvh_root, &bb_ray, out_node)) {
+    int i = out_node->prim_idx;
+    switch (world->bvh_prims[i].type) {
+      case PT_SPHERE: {
+        if (sphere_intersect(&(world->spheres[world->bvh_prims[i].p_idx]), r, out_ii)) {
+          rwth_atomic_add_i64((int64_t volatile *) &mtr_num_sphere_isect, 1);
+          out_ii->material = &world->sphere_materials[world->bvh_prims[i].p_idx];
+          did_intersect = true;
+        }
+      } break;
+      case PT_TRIANGLE: {
+        int f_idx = world->bvh_prims[i].f_idx;
+        Mesh *cur_mesh  = world->meshes[world->bvh_prims[i].mesh_idx];
+        Triangle triangle;
+        triangle.v0 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3]];
+        triangle.v1 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 1]];
+        triangle.v2 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 2]];
+        if (triangle_intersect(&triangle, r, out_ii)) {
+          rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
+          // Get surface properties: texture coordinates, vertex normal
+          Vec3 col = {triangle.u , triangle.v, triangle.w};
+          out_ii->color = col;
+          Vec2 uv0 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3]];
+          Vec2 uv1 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 1]];
+          Vec2 uv2 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 2]];
+          out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
+          Vec3 n0 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3]];
+          Vec3 n1 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 1]];
+          Vec3 n2 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 2]];
+          out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
+          out_ii->material = &world->mesh_materials[world->bvh_prims[i].mesh_idx];
+          did_intersect = true;
+        }
+      } break;
+      default:
+        break;
+    }
+  }
+#else
+  Ray bb_ray = *r;
   for (int i = 0; i < world->bvh_prims.size(); i++) {
     if (bb_intersect(&world->bvh_prims[i].bounds, &bb_ray, out_ii)) {
       switch (world->bvh_prims[i].type) {
         case PT_SPHERE: {
-          if (sphere_intersect(&(world->spheres[world->bvh_prims[i].idx]), r, out_ii)) {
+          if (sphere_intersect(&(world->spheres[world->bvh_prims[i].p_idx]), r, out_ii)) {
             rwth_atomic_add_i64((int64_t volatile *) &mtr_num_sphere_isect, 1);
-            out_ii->material = &world->sphere_materials[world->bvh_prims[i].idx];
+            out_ii->material = &world->sphere_materials[world->bvh_prims[i].p_idx];
             did_intersect = true;
           }
         } break;
         case PT_TRIANGLE: {
           int f_idx = world->bvh_prims[i].f_idx;
-          Mesh *cur_mesh  = world->meshes[world->bvh_prims[i].idx];
+          Mesh *cur_mesh  = world->meshes[world->bvh_prims[i].mesh_idx];
           Triangle triangle;
           triangle.v0 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3]];
           triangle.v1 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 1]];
@@ -84,53 +125,13 @@ bool trace(World *world, Ray *r, IntersectInfo *out_ii) {
             Vec3 n1 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 1]];
             Vec3 n2 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 2]];
             out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
-            out_ii->material = &world->mesh_materials[world->bvh_prims[i].idx];
+            out_ii->material = &world->mesh_materials[world->bvh_prims[i].mesh_idx];
             did_intersect = true;
           }
         } break;
-        // case PT_MESH: {
-          // if (mesh_intersect(world->meshes[world->bvh_prims[i].idx], r, out_ii)) {
-            // out_ii->material = &world->mesh_materials[world->bvh_prims[i].idx];
-            // did_intersect = true;
-          // }
-        // } break;
         default:
           break;
       }
-    }
-  }
-#else
-  for (int i = 0; i < world->spheres.size(); i++) {
-    if (sphere_intersect(&(world->spheres[i]), r, out_ii)) {
-      rwth_atomic_add_i64((int64_t volatile *) &num_sphere_isect, 1);
-      out_ii->material = &world->sphere_materials[i];
-      did_intersect = true;
-      // SHADOW_ISECT_PRINTF("shadow ray isect sphere\n");
-    }
-  }
-
-  for (int i = 0; i < world->planes.size(); i++) {
-    if (plane_intersect(&(world->planes[i]), r, out_ii)) {
-      rwth_atomic_add_i64((int64_t volatile *) &num_plane_isect, 1);
-    // if (disk_intersect(&(world->planes[i]), 2, r, out_ii)) {
-      out_ii->material = &world->plane_materials[i];
-      did_intersect = true;
-    }
-  }
-
-  for (int i = 0; i < world->tris.size(); i++) {
-    if (triangle_intersect(&(world->tris[i]), r, out_ii)) {
-      rwth_atomic_add_i64((int64_t volatile *) &num_triangle_isect, 1);
-      did_intersect = true;
-    }
-  }
-
-  for (int i = 0; i < world->meshes.size(); i++) {
-    if (mesh_intersect(world->meshes[i], r, out_ii)) {
-      out_ii->material = &world->mesh_materials[i];
-      did_intersect = true;
-      // SHADOW_ISECT_PRINTF("shadow ray isect mesh\n");
-      // SHADOW_ISECT_PRINTF("shadow ray t: %f\n", r->at_t);
     }
   }
 #endif

@@ -184,6 +184,7 @@ bool bb_intersect(Rect3 *bb, Ray *r, IntersectInfo *out_ii) {
   if (t_min > t_zmax || t_zmin > t_max) return false;
   t_min = MAX(t_min, t_zmin);
   t_max = MIN(t_max, t_zmax);
+  if (r->at_t < t_min || t_min < 0) return false;
   r->at_t = t_min;
 
   return true;
