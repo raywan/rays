@@ -175,44 +175,50 @@ BVHNode *bvh_build(World *world) {
   return root;
 }
 
+bool bvha_intersect(World *world, BVHPrimitive *bvhp, Ray *r, IntersectInfo *out_ii) {
+  switch (bvhp->type) {
+    case PT_SPHERE:
+      if (sphere_intersect(&(world->spheres[bvhp->p_idx]), r, out_ii)) {
+        rwth_atomic_add_i64((int64_t volatile *) &mtr_num_sphere_isect, 1);
+        out_ii->material = &world->sphere_materials[bvhp->p_idx];
+        return true;
+      }
+      break;
+    case PT_TRIANGLE: {
+      int f_idx = bvhp->f_idx;
+      Mesh *cur_mesh  = world->meshes[bvhp->mesh_idx];
+      Triangle triangle;
+      triangle.v0 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3]];
+      triangle.v1 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 1]];
+      triangle.v2 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 2]];
+      if (triangle_intersect(&triangle, r, out_ii)) {
+        rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
+        // Get surface properties: texture coordinates, vertex normal
+        Vec3 col = {triangle.u , triangle.v, triangle.w};
+        out_ii->color = col;
+        Vec2 uv0 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3]];
+        Vec2 uv1 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 1]];
+        Vec2 uv2 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 2]];
+        out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
+        Vec3 n0 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3]];
+        Vec3 n1 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 1]];
+        Vec3 n2 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 2]];
+        out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
+        out_ii->material = &world->mesh_materials[bvhp->mesh_idx];
+        return true;
+      }
+    } break;
+    default:
+      return false;
+  }
+  return false;
+}
+
 bool bvh_intersect(World *world, BVHNode *root, Ray *orig_ray, IntersectInfo *out_ii, Ray *out_r) {
   if (!root) return false;
   if (bb_intersect(&root->bounds, orig_ray, out_ii)) {
     if (root->leaf) {
-      BVHPrimitive bvhp = world->bvh_prims[root->prim_idx];
-      switch (bvhp.type) {
-        case PT_SPHERE:
-          if (sphere_intersect(&(world->spheres[bvhp.p_idx]), out_r, out_ii)) {
-            rwth_atomic_add_i64((int64_t volatile *) &mtr_num_sphere_isect, 1);
-            out_ii->material = &world->sphere_materials[bvhp.p_idx];
-            return true;
-          }
-          break;
-        case PT_TRIANGLE: {
-          int f_idx = bvhp.f_idx;
-          Mesh *cur_mesh  = world->meshes[bvhp.mesh_idx];
-          Triangle triangle;
-          triangle.v0 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3]];
-          triangle.v1 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 1]];
-          triangle.v2 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 2]];
-          if (triangle_intersect(&triangle, out_r, out_ii)) {
-            rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
-            // Get surface properties: texture coordinates, vertex normal
-            Vec3 col = {triangle.u , triangle.v, triangle.w};
-            out_ii->color = col;
-            Vec2 uv0 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3]];
-            Vec2 uv1 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 1]];
-            Vec2 uv2 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 2]];
-            out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
-            Vec3 n0 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3]];
-            Vec3 n1 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 1]];
-            Vec3 n2 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 2]];
-            out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
-            out_ii->material = &world->mesh_materials[bvhp.mesh_idx];
-            return true;
-          }
-        } break;
-      }
+      return bvha_intersect(world, &world->bvh_prims[root->prim_idx], out_r, out_ii);
     } else {
       bool left_result = bvh_intersect(world, root->left, orig_ray, out_ii, out_r);
       bool right_result = bvh_intersect(world, root->right, orig_ray, out_ii, out_r);

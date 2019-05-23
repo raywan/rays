@@ -11,6 +11,7 @@ enum RayType {
   RT_SHADOW,
   RT_REFLECT,
   RT_REFRACT,
+  RT_GI,
 };
 
 struct Ray {

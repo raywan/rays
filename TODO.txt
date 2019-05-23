@@ -4,7 +4,11 @@ Build:
   [x] Create Windows entry point i.e. win32_main.cpp
 
 
-Multithreading:
+Uncategorized:
   [ ] Fix off by one error in tile compositing @BUG
   [ ] Tile size independent multithreaded rendering
         Height and width are must be multiples of the tile size currently
+  [ ] Add transform to Mesh
+  [ ] Use memory arena for allocations
+  [ ] Render suzanne
+  [ ] Render Cornell Box

@@ -1,12 +1,21 @@
 #include "world.h"
+#include <rw/rw_transform.h>
 
 void create_world(World *world) {
   printf("Loading OBJ files:\n\t");
 
   Mesh *suz = new Mesh;
   load_obj(suz, "suzanne.obj", false);
+  suz->obj_world_tr = rwtr_trs(
+    rwm_v3_init(0.0,1.0,-1.0),
+    rwm_v3_init(1.0,1.0,1.0),
+    -1, 0);
   Mesh *plane = new Mesh;
   *plane = mesh_make_plane();
+  plane->obj_world_tr = rwtr_trs(
+    rwm_v3_init(0.0,1.0,-1.0),
+    rwm_v3_init(1.0,1.0,1.0),
+    -1, 0);
 
   puts("Creating world...");
   // world->spheres.push_back({rwm_v3_init(0,0.25,-0.8), 0.5});
