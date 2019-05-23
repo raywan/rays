@@ -172,20 +172,33 @@ bool mesh_intersect(Mesh *mesh, Ray *r, IntersectInfo *out_ii) {
 }
 
 bool bb_intersect(Rect3 *bb, Ray *r, IntersectInfo *out_ii) {
+  #if 0
+  // TODO(ray): The optimized version doesn't work properly...
+  // Something is wrong. Come back to this later.
   float t_min = (bb->p[r->sign[0]].x - r->origin.x) * r->inv_dir.x;
   float t_max = (bb->p[1-r->sign[0]].x - r->origin.x) * r->inv_dir.x;
   float t_ymin = (bb->p[r->sign[1]].y - r->origin.y) * r->inv_dir.y;
   float t_ymax = (bb->p[1-r->sign[1]].y - r->origin.y) * r->inv_dir.y;
-  if (t_min > t_ymax || t_ymin > t_max) return false;
-  t_min = MAX(t_min, t_ymin);
-  t_max = MIN(t_max, t_ymax);
+  if (t_min > t_ymin || t_ymin > t_max) return false;
+  if (t_ymin > t_min) t_min = t_ymin;
+  if (t_ymax < t_max) t_max = t_ymax;
   float t_zmin = (bb->p[r->sign[2]].z - r->origin.z) * r->inv_dir.z;
   float t_zmax = (bb->p[1-r->sign[2]].z - r->origin.z) * r->inv_dir.z;
   if (t_min > t_zmax || t_zmin > t_max) return false;
-  t_min = MAX(t_min, t_zmin);
-  t_max = MIN(t_max, t_zmax);
-  if (r->at_t < t_min || t_min < 0) return false;
-  r->at_t = t_min;
-
+  if (t_zmin > t_min) t_min = t_zmin;
+  if (t_zmax < t_max) t_max = t_zmax;
+  return (t_min < FLT_MAX) && (t_max > 0);
+#else
+  float t0 = 0;
+  float t1 = FLT_MAX;
+  for (int i = 0; i < 3; i++) {
+    float t_near = (bb->min_p.e[i] - r->origin.e[i]) * r->inv_dir.e[i];
+    float t_far = (bb->max_p.e[i] - r->origin.e[i]) * r->inv_dir.e[i];
+    if (t_near > t_far) std::swap(t_near, t_far);
+    t0 = t_near > t0 ? t_near : t0;
+    t1 = t_far < t1 ? t_far : t1;
+    if (t0 > t1) return false;
+  }
+#endif
   return true;
 }

@@ -7,6 +7,7 @@
 struct World;
 
 struct BVHNode {
+  int id;
   Rect3 bounds;
   int prim_idx;
   int split_axis;
@@ -28,7 +29,6 @@ struct BVHPrimitive {
 
 std::vector<BVHPrimitive> bvh_preprocess_world(World *w);
 BVHNode *bvh_build(World *world);
-// bool bvh_intersect(BVHNode *root, Ray *r, IntersectInfo *ii);
-bool bvh_intersect(BVHNode *root, Ray *r, BVHNode *out_node);
+bool bvh_intersect(World *world, BVHNode *root, Ray *orig_ray, IntersectInfo *out_ii, Ray *out_r);
 
 #endif

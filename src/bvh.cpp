@@ -1,10 +1,12 @@
 #include "bvh.h"
 #include "mesh.h"
 #include "world.h"
+#include "metrics.h"
+#include <rw/rw_th.h>
 
-#define BOUND_MESH 1
+#define BOUND_MESH 0
 
-#define DEBUG 1
+#define DEBUG 0
 
 uint32_t xor_shift_u32(uint32_t *state) {
   uint32_t x = *state;
@@ -15,7 +17,7 @@ uint32_t xor_shift_u32(uint32_t *state) {
   return x;
 }
 
-BVHNode *bvh_leaf_node(int prim_idx, int axis, Rect3 bounds) {
+BVHNode *bvh_leaf_node(int prim_idx, int axis, Rect3 bounds, int *total_nodes) {
   BVHNode *node = (BVHNode *) malloc(sizeof(BVHNode));
   node->split_axis = axis;
   node->prim_idx = prim_idx;
@@ -23,6 +25,7 @@ BVHNode *bvh_leaf_node(int prim_idx, int axis, Rect3 bounds) {
   node->left = NULL;
   node->right = NULL;
   node->leaf = true;
+  node->id = (*total_nodes)++;
   return node;
 }
 
@@ -82,6 +85,7 @@ void print_prims(BVHPrimitive *prims, int n) {
 
 void bvhn_print(BVHNode *node) {
 #if DEBUG
+  printf("node addr: %p\n", node);
   printf("node.leaf: %d\n", node->leaf);
   if (node->leaf) {
     printf("node.prim_idx: %d\n", node->prim_idx);
@@ -122,34 +126,39 @@ BVHNode *bvh_recursive_build(BVHPrimitive *prims, int n, int *total_nodes) {
   // printf("n == %d\n", n);
   BVHNode *node = (BVHNode *) malloc(sizeof(BVHNode));
   node->leaf = false;
-  (*total_nodes)++;
+  node->id = (*total_nodes)++;
   static uint32_t rng_state = 4;
   int axis = xor_shift_u32(&rng_state) % 3;
   // printf("Sorting on axis: %d\n", axis);
   if (axis == 0) {
     qsort(prims, n, sizeof(BVHPrimitive), x_axis_comp);
   } else if (axis == 1) {
-    qsort(prims, n, sizeof(BVHPrimitive), y_axis_comp); 
+    qsort(prims, n, sizeof(BVHPrimitive), y_axis_comp);
   } else {
     qsort(prims, n, sizeof(BVHPrimitive), z_axis_comp);
   }
   #if 1
   if (n == 1) {
-    node->left = bvh_leaf_node(prims[0].idx, axis, prims[0].bounds);
+    node->left = bvh_leaf_node(prims[0].idx, axis, prims[0].bounds, total_nodes);
     node->right = NULL;
-    (*total_nodes)++;
     bvhn_print(node->left);
   } else if (n == 2) {
-    node->left = bvh_leaf_node(prims[0].idx, axis, prims[0].bounds);
+    node->left = bvh_leaf_node(prims[0].idx, axis, prims[0].bounds, total_nodes);
     bvhn_print(node->left);
-    node->right = bvh_leaf_node(prims[1].idx, axis, prims[1].bounds);
+    node->right = bvh_leaf_node(prims[1].idx, axis, prims[1].bounds, total_nodes);
     bvhn_print(node->right);
-    *total_nodes += 2;
   } else {
     node->left = bvh_recursive_build(prims, n/2, total_nodes);
     node->right = bvh_recursive_build(prims+n/2, n-n/2, total_nodes);
   }
-  node->bounds = rwm_r3_union(node->left->bounds, node->right->bounds);
+  if (node->left && node->right) {
+    node->bounds = rwm_r3_union(node->left->bounds, node->right->bounds);
+  } else if (node->left) {
+    node->bounds = node->left->bounds;
+  } else if (node->right) {
+    node->bounds = node->right->bounds;
+  }
+
   bvhn_print(node);
   #endif
   return node;
@@ -166,20 +175,49 @@ BVHNode *bvh_build(World *world) {
   return root;
 }
 
-// Need to return the leaf node of the primitive we intersect with
-// Check bb
-// Check if children are leaves, if yes, then check them and return
-// Else. recurse on children if they exist
-bool bvh_intersect(BVHNode *root, Ray *r, BVHNode *out_node) {
+bool bvh_intersect(World *world, BVHNode *root, Ray *orig_ray, IntersectInfo *out_ii, Ray *out_r) {
   if (!root) return false;
-  IntersectInfo ii;
-  if (bb_intersect(&root->bounds, r, &ii)) {
+  if (bb_intersect(&root->bounds, orig_ray, out_ii)) {
     if (root->leaf) {
-      out_node = root;
-      return true;
+      BVHPrimitive bvhp = world->bvh_prims[root->prim_idx];
+      switch (bvhp.type) {
+        case PT_SPHERE:
+          if (sphere_intersect(&(world->spheres[bvhp.p_idx]), out_r, out_ii)) {
+            rwth_atomic_add_i64((int64_t volatile *) &mtr_num_sphere_isect, 1);
+            out_ii->material = &world->sphere_materials[bvhp.p_idx];
+            return true;
+          }
+          break;
+        case PT_TRIANGLE: {
+          int f_idx = bvhp.f_idx;
+          Mesh *cur_mesh  = world->meshes[bvhp.mesh_idx];
+          Triangle triangle;
+          triangle.v0 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3]];
+          triangle.v1 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 1]];
+          triangle.v2 = cur_mesh->v[cur_mesh->v_idx[f_idx * 3 + 2]];
+          if (triangle_intersect(&triangle, out_r, out_ii)) {
+            rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
+            // Get surface properties: texture coordinates, vertex normal
+            Vec3 col = {triangle.u , triangle.v, triangle.w};
+            out_ii->color = col;
+            Vec2 uv0 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3]];
+            Vec2 uv1 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 1]];
+            Vec2 uv2 = cur_mesh->uv[cur_mesh->uv_idx[f_idx * 3 + 2]];
+            out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
+            Vec3 n0 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3]];
+            Vec3 n1 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 1]];
+            Vec3 n2 = cur_mesh->n[cur_mesh->n_idx[f_idx * 3 + 2]];
+            out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
+            out_ii->material = &world->mesh_materials[bvhp.mesh_idx];
+            return true;
+          }
+        } break;
+      }
+    } else {
+      bool left_result = bvh_intersect(world, root->left, orig_ray, out_ii, out_r);
+      bool right_result = bvh_intersect(world, root->right, orig_ray, out_ii, out_r);
+      return left_result || right_result;
     }
-    return bvh_intersect(root->left, r, out_node) || 
-      bvh_intersect(root->right, r, out_node);
   }
   return false;
 }

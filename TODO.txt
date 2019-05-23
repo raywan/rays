@@ -1,8 +1,10 @@
 Build:
-  [ ] Create windows target for ninja build script generator (configure.py)
+  [x] Create windows target for ninja build script generator (configure.py)
   [x] build.bat for Windows
   [x] Create Windows entry point i.e. win32_main.cpp
 
 
-[ ] Tile size independent multithreaded rendering
-      - Height and width are must be multiples of the tile size currently
+Multithreading:
+  [ ] Fix off by one error in tile compositing @BUG
+  [ ] Tile size independent multithreaded rendering
+        Height and width are must be multiples of the tile size currently

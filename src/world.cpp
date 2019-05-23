@@ -1,7 +1,5 @@
 #include "world.h"
 
-// Mesh plane;
-
 void create_world(World *world) {
   printf("Loading OBJ files:\n\t");
 
@@ -11,30 +9,30 @@ void create_world(World *world) {
   *plane = mesh_make_plane();
 
   puts("Creating world...");
-  // world->spheres.push_back((Sphere) {rwm_v3_init(0,0.25,-0.8), 0.5});
-  // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-0.5), 0.5});
+  // world->spheres.push_back({rwm_v3_init(0,0.25,-0.8), 0.5});
+  // world->spheres.push_back({rwm_v3_init(-1,0.25,-0.5), 0.5});
   world->spheres.push_back(sphere_create(rwm_v3_init(0.6,0.12,0.0), 0.25));
   world->spheres.push_back(sphere_create(rwm_v3_init(0,0.25,-0.5), 0.5));
-  // world->spheres.push_back((Sphere) {rwm_v3_init(1,0.25,-1), 0.5});
-  // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-1), 0.5});
-  // world->spheres.push_back((Sphere) {rwm_v3_init(-1,0.25,-2), 1.5});
-  world->sphere_materials.push_back({M_REFLECT, rwm_v3_init(1.0, 1.0, 1.0)});
-  // world->sphere_materials.push_back((Material) {M_RR, rwm_v3_init(1.0, 1.0, 1.0), 1.55});
+  // world->spheres.push_back({rwm_v3_init(1,0.25,-1), 0.5});
+  // world->spheres.push_back({rwm_v3_init(-1,0.25,-1), 0.5});
+  // world->spheres.push_back({rwm_v3_init(-1,0.25,-2), 1.5});
+  // world->sphere_materials.push_back({M_REFLECT, rwm_v3_init(1.0, 1.0, 1.0)});
+  world->sphere_materials.push_back({M_RR, rwm_v3_init(1.0, 1.0, 1.0), 1.55});
   world->sphere_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 0.0, 0.0)});
-  // world->sphere_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
+  // world->sphere_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
 
-  // world->planes.push_back((Plane) {rwm_v3_init(0,-0.5,-1), rwm_v3_init(0,1.0,0)});
-  // world->plane_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
-  // world->planes.push_back((Plane) {rwm_v3_init(0,0,-5), rwm_v3_init(0,0,1.0)});
-  // world->plane_materials.push_back((Material) {M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
-  // world->tris.push_back((Triangle) {
+  // world->planes.push_back({rwm_v3_init(0,-0.5,-1), rwm_v3_init(0,1.0,0)});
+  // world->plane_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
+  // world->planes.push_back({rwm_v3_init(0,0,-5), rwm_v3_init(0,0,1.0)});
+  // world->plane_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0)});
+  // world->tris.push_back({
     // rwm_v3_init(-1,-1.0,-5),
     // rwm_v3_init(1,-1.0,-5),
     // rwm_v3_init(0,1.0,-5)
   // });
   // world->meshes.push_back(&suz);
   world->meshes.push_back(plane);
-  // world->mesh_materials.push_back((Material) {M_REFLECT, rwm_v3_zero()});
+  // world->mesh_materials.push_back({M_REFLECT, rwm_v3_zero()});
   world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, true});
   puts("Adding lights");
 
