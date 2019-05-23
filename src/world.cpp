@@ -1,6 +1,8 @@
 #include "world.h"
 #include <rw/rw_transform.h>
 
+#include "bvh.h"
+
 void create_world(World *world) {
   printf("Loading OBJ files:\n\t");
 
@@ -69,4 +71,5 @@ void create_world(World *world) {
   });
 #endif
 
+  world->bvh_root = bvh_build(world);
 }

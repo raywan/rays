@@ -5,6 +5,8 @@
 #include <rw/rw_time.h>
 #define RWM_IMPLEMENTATION
 #include <rw/rw_math.h>
+#define RWTR_IMPLEMENTATION
+#include <rw/rw_transform.h>
 
 #include "render.h"
 #include "mesh.h"
@@ -80,7 +82,6 @@ int main(int argc, char *argv[]) {
   // Intialize scene
   World world;
   create_world(&world);
-  world.bvh_prims = bvh_preprocess_world(&world);
 
   int *data = (int *) malloc(WIDTH * HEIGHT * sizeof(int));
   int *cur_data = data;

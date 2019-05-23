@@ -219,7 +219,7 @@ void render(WorkerData *data, Tile t) {
   for (int i = 0; i < TILE_Y; i++) {
     for (int j = 0; j < TILE_X; j++) {
       int x = (int) t.top_right.x + j;
-      int y = (int) t.top_right.y + TILE_Y - 1 - i;
+      int y = (int) t.top_right.y + TILE_Y - i;
       Vec3 color = rwm_v3_zero();
       for (int s = 0; s < SAMPLES_PER_PIXEL; s++) {
         float s1 = SAMPLES_PER_PIXEL > 1 ? spp_distribution(generator) : 0;
