@@ -32,6 +32,9 @@ with open('build.ninja', 'w') as build_file:
 
     n.variable(key='ninja_required_version', value='1.9')
 
+    if sys.platform == 'win32':
+        n.variable(key='msvc_deps_prefix', value='Note: including file:')
+
     n.variable(key='cc', value=CC)
     n.variable(key='cflags', value=' '.join(CFLAGS))
     n.variable(key='project_name', value=PROJECT_NAME)
@@ -46,7 +49,7 @@ with open('build.ninja', 'w') as build_file:
     ############################################################################
 
     if sys.platform == 'win32':
-        n.rule('compile', command='$cc $cflags -c $in -Fo$out')
+        n.rule('compile', command='$cc /showIncludes $cflags -c $in -Fo$out', deps='msvc')
     else:
         n.rule('compile',
                command='$cc $cflags -c $in -o $out -MMD -MF $out.d',

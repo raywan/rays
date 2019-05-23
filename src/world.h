@@ -36,6 +36,7 @@ struct World {
 
   std::vector<Light> lights;
   std::vector<BVHPrimitive> bvh_prims;
+  BVHNode *bvh_root;
 };
 
 void create_world(World *w);
