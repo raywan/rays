@@ -86,7 +86,6 @@ int main(int argc, char *argv[]) {
   // Intialize scene
   World world;
   create_world(&world);
-  world.bvh_root = bvh_build(&world);
 
   int *data = (int *) malloc(WIDTH * HEIGHT * sizeof(int));
   int *cur_data = data;

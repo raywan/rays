@@ -9,7 +9,7 @@
 #define BIAS 0.0001f
 #define REFRACT_BIAS 0.00001f
 
-#define MAX_DEPTH 2
+#define MAX_DEPTH 5
 #define SAMPLES_PER_PIXEL 4
 
 #define USE_GLOBAL_ILLUMINATION 0

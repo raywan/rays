@@ -167,11 +167,11 @@ BVHNode *bvh_recursive_build(BVHPrimitive *prims, int n, int *total_nodes) {
 BVHNode *bvh_build(World *world) {
   world->bvh_prims = bvh_preprocess_world(world);
   std::vector<BVHPrimitive> bvh_prims_work_copy = world->bvh_prims;
-  printf("total prims: %llu\n", world->bvh_prims.size());
+  printf("Total prims: %llu\n", world->bvh_prims.size());
   print_prims(world->bvh_prims.data(), world->bvh_prims.size());
   int total_nodes = 0;
   BVHNode *root = bvh_recursive_build(bvh_prims_work_copy.data(), world->bvh_prims.size(), &total_nodes);
-  printf("total nodes: %d\n", total_nodes);
+  printf("Total nodes: %d\n", total_nodes);
   return root;
 }
 

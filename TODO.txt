@@ -3,12 +3,13 @@ Build:
   [x] build.bat for Windows
   [x] Create Windows entry point i.e. win32_main.cpp
 
-
 Uncategorized:
-  [ ] Fix off by one error in tile compositing @BUG
   [ ] Tile size independent multithreaded rendering
         Height and width are must be multiples of the tile size currently
   [ ] Add transform to Mesh
   [ ] Use memory arena for allocations
   [ ] Render suzanne
   [ ] Render Cornell Box
+
+Miscellaneous:
+  [x] Fix off by one error in tile compositing @BUG @done (19-05-23 13:31)
