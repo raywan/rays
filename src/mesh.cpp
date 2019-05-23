@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <sstream>
 #include <string>
-#include <rw/rw_math.h>
 #include <assert.h>
 #include <set>
+
+#include <rw/rw_math.h>
+#include <rw/rw_transform.h>
 
 using namespace std;
 

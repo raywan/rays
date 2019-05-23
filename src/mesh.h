@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <rw/rw_math.h>
+#include <rw/rw_transform.h>
 
 #define NUM_PACKED_ELEMENTS 8
 
@@ -36,6 +37,8 @@ typedef struct Mesh {
   float *packed;
 
   FaceFormat format;
+
+  Transform obj_world_tr;
 } Mesh;
 
 uint8_t load_obj(Mesh *out_mesh, const char *obj_path, bool pack_data);

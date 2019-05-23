@@ -3,14 +3,14 @@
 #include <math.h>
 
 #include <rw/rw_math.h>
-#define RWTH_IMPLEMENTATION
-#include <rw/rw_th.h>
 
 #include "global.h"
 #include "texture.h"
 #include "utils.h"
 #include "metrics.h"
 #include "bvh.h"
+
+#define USE_BVH 1
 
 std::default_random_engine generator;
 std::uniform_real_distribution<float> distribution(0, 1);
@@ -83,7 +83,7 @@ void calculate_light_contribution(Light *l, IntersectInfo *ii, Vec3 *out_light_d
 
 Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
   if (cur_depth > MAX_DEPTH) return rwm_v3_zero();
-
+  record_ray_metric(r);
   Vec3 color = rwm_v3_zero();
   IntersectInfo ii;
   if (trace(world, r, &ii)) {
@@ -133,6 +133,7 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
             ii.hit_point + sample_normal_space * BIAS,
             sample_normal_space
           );
+          sample_ray.type = RT_GI;
           indirect_lighting += r1 * rwm_v3_scalar_div(cast_ray(world, &sample_ray, cur_depth+1), pdf);
         }
         indirect_lighting = rwm_v3_scalar_div(indirect_lighting, (float) NUM_PT_SAMPLES);
@@ -221,7 +222,6 @@ void render(WorkerData *data, Tile t) {
       int y = (int) t.top_right.y + TILE_Y - 1 - i;
       Vec3 color = rwm_v3_zero();
       for (int s = 0; s < SAMPLES_PER_PIXEL; s++) {
-        rwth_atomic_add_i64((int64_t volatile *) &mtr_num_primary_rays, 1);
         float s1 = SAMPLES_PER_PIXEL > 1 ? spp_distribution(generator) : 0;
         float s2 = SAMPLES_PER_PIXEL > 1 ? spp_distribution(generator) : 0;
         Ray r = camera_get_ray(data->camera, x+s1, y+s2);

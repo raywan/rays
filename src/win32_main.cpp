@@ -6,6 +6,8 @@
 #include <rw/rw_time.h>
 #define RWM_IMPLEMENTATION
 #include <rw/rw_math.h>
+#define RWTR_IMPLEMENTATION
+#include <rw/rw_transform.h>
 
 #include "render.h"
 #include "mesh.h"
@@ -43,6 +45,8 @@ unsigned int worker(void *t_arg) {
 }
 
 int main(int argc, char *argv[]) {
+  print_run_info();
+
   rwtm_init();
   mtr_start_time = rwtm_now();
 
@@ -55,8 +59,6 @@ int main(int argc, char *argv[]) {
       output_name = argv[2];
     }
   }
-
-  print_run_info();
 
   Camera camera;
   if (camera_shot == 0) {

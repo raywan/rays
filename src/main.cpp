@@ -39,6 +39,8 @@ void *worker(void *t_arg) {
 }
 
 int main(int argc, char *argv[]) {
+  print_run_info();
+
   rwtm_init();
   mtr_start_time = rwtm_now();
 
@@ -51,8 +53,6 @@ int main(int argc, char *argv[]) {
       output_name = argv[2];
     }
   }
-
-  print_run_info();
 
   Camera camera;
   if (camera_shot == 0) {
