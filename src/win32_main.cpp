@@ -84,11 +84,12 @@ int main(int argc, char *argv[]) {
   // Intialize scene
   World world;
   create_world(&world);
-  world.bvh_prims = bvh_preprocess_world(&world);
+  world.bvh_root = bvh_build(&world);
 
   int *data = (int *) malloc(WIDTH * HEIGHT * sizeof(int));
   int *cur_data = data;
 
+#if 1
 #if NUM_THREADS != 1
   puts("Begin multithreaded tracing...");
 
@@ -141,6 +142,7 @@ int main(int argc, char *argv[]) {
 
   print_post_run_metrics();
   puts("Done.");
+#endif
 
   return 0;
 }
