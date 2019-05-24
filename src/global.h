@@ -9,11 +9,11 @@
 #define BIAS 0.0001f
 #define REFRACT_BIAS 0.00001f
 
-#define MAX_DEPTH 5
+#define MAX_DEPTH 3
 #define SAMPLES_PER_PIXEL 4
 
-#define USE_GLOBAL_ILLUMINATION 0
-#define NUM_PT_SAMPLES 32
+#define USE_GLOBAL_ILLUMINATION 1
+#define NUM_PT_SAMPLES 16
 
 #define TILE_X 16
 #define TILE_Y 16

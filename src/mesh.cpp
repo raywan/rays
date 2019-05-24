@@ -221,3 +221,14 @@ Mesh mesh_make_plane() {
 
   return result;
 }
+
+void mesh_attach_transform(Mesh *mesh, Transform obj_world_tr) {
+  mesh->obj_world_tr = obj_world_tr;
+  for (int i = 0; i < mesh->v.size(); i++) {
+    mesh->v[i] = rwtr_pt3_apply(&mesh->obj_world_tr, mesh->v[i]);
+  }
+
+  for (int i = 0; i < mesh->n.size(); i++) {
+    mesh->n[i] = rwtr_n3_apply(&mesh->obj_world_tr, mesh->n[i]);
+  }
+}
