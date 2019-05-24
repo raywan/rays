@@ -144,27 +144,33 @@ bool disk_intersect(Plane *plane, float radius, Ray *r, IntersectInfo *out_ii) {
   return false;
 }
 
+bool mesh_tri_intersect(Mesh *mesh, int f_idx, Ray *r, IntersectInfo *out_ii) {
+  Triangle triangle;
+  triangle.v0 = mesh->v[mesh->v_idx[f_idx * 3]];
+  triangle.v1 = mesh->v[mesh->v_idx[f_idx * 3 + 1]];
+  triangle.v2 = mesh->v[mesh->v_idx[f_idx * 3 + 2]];
+  if (triangle_intersect(&triangle, r, out_ii)) {
+    rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
+    // Get surface properties: texture coordinates, vertex normal
+    Vec3 col = {triangle.u , triangle.v, triangle.w};
+    out_ii->color = col;
+    Vec2 uv0 = mesh->uv[mesh->uv_idx[f_idx * 3]];
+    Vec2 uv1 = mesh->uv[mesh->uv_idx[f_idx * 3 + 1]];
+    Vec2 uv2 = mesh->uv[mesh->uv_idx[f_idx * 3 + 2]];
+    out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
+    Vec3 n0 = mesh->n[mesh->n_idx[f_idx * 3]];
+    Vec3 n1 = mesh->n[mesh->n_idx[f_idx * 3 + 1]];
+    Vec3 n2 = mesh->n[mesh->n_idx[f_idx * 3 + 2]];
+    out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
+    return true;
+  }
+  return false;
+}
+
 bool mesh_intersect(Mesh *mesh, Ray *r, IntersectInfo *out_ii) {
   bool did_intersect = false;
   for (int j = 0; j < mesh->f.size(); j++) {
-    Triangle triangle;
-    triangle.v0 = mesh->v[mesh->v_idx[j * 3]];
-    triangle.v1 = mesh->v[mesh->v_idx[j * 3 + 1]];
-    triangle.v2 = mesh->v[mesh->v_idx[j * 3 + 2]];
-    if (triangle_intersect(&triangle, r, out_ii)) {
-      rwth_atomic_add_i64((int64_t volatile *) &mtr_num_triangle_isect, 1);
-      // Get surface properties: texture coordinates, vertex normal
-      Vec3 col = {triangle.u , triangle.v, triangle.w};
-      out_ii->color = col;
-      Vec2 uv0 = mesh->uv[mesh->uv_idx[j * 3]];
-      Vec2 uv1 = mesh->uv[mesh->uv_idx[j * 3 + 1]];
-      Vec2 uv2 = mesh->uv[mesh->uv_idx[j * 3 + 2]];
-      out_ii->tex_coord = (triangle.w * uv0) + (triangle.u * uv1) + (triangle.v * uv2);
-      Vec3 n0 = mesh->n[mesh->n_idx[j * 3]];
-      Vec3 n1 = mesh->n[mesh->n_idx[j * 3 + 1]];
-      Vec3 n2 = mesh->n[mesh->n_idx[j * 3 + 2]];
-      out_ii->normal = (triangle.w * n0) + (triangle.u * n1) + (triangle.v * n2);
-
+    if (mesh_tri_intersect(mesh, j, r, out_ii)) {
       did_intersect = true;
     }
   }

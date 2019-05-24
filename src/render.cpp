@@ -206,7 +206,10 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
   } else {
     // "Skybox", just a gradient
     float t = 0.5f*(r->dir.y + 1.0f);
-    color = ((1.0f - t)*rwm_v3_init(1.0f, 1.0f, 1.0f) + t * rwm_v3_init(0.5f, 0.7f, 1.0f)) * 0.5f;
+    // NOTE(ray): Hack? Don't sample skybox if we're sampling indirect light
+    if (r->type != RT_GI) {
+      color = ((1.0f - t)*rwm_v3_init(1.0f, 1.0f, 1.0f) + t * rwm_v3_init(0.5f, 0.7f, 1.0f)) * 0.5f;
+    }
   }
   return color;
 }

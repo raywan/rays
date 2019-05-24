@@ -36,7 +36,7 @@ Camera camera_init_default() {
     rwm_v3_init(0.0, 0.0, 0.0), // position
     rwm_v3_init(0.0, 0.0, -1.0), // target
     rwm_v3_init(0.0, 1.0, 0.0), // up
-    90.0f, // fov
+    43.0f, // fov
     2.0f // aperature
   );
 }
