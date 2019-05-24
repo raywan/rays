@@ -41,13 +41,6 @@ void *worker(void *t_arg) {
 }
 
 int main(int argc, char *argv[]) {
-  print_run_info();
-
-  rwtm_init();
-  mtr_start_time = rwtm_now();
-
-  // Initialize the camera
-  puts("Initializing camera...");
   int camera_shot = 0;
   if (argc > 1) {
     camera_shot = atoi(argv[1]);
@@ -56,6 +49,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  print_run_info();
+
+  rwtm_init();
+  mtr_start_time = rwtm_now();
+
+  // Initialize the camera
+  puts("Initializing camera...");
   Camera camera;
   if (camera_shot == 0) {
 #if 0

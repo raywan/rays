@@ -4,10 +4,12 @@ Build:
   [x] Create Windows entry point i.e. win32_main.cpp
 
 Uncategorized:
+  [ ] BxDF based materials
   [ ] Tile size independent multithreaded rendering
         Height and width are must be multiples of the tile size currently
   [ ] Use memory arena for allocations
   [ ] Render Cornell Box
+  [ ] Create and parse own scene files
   [x] Add transform to Mesh @done (19-05-24 01:02)
   [x] Render suzanne @done (19-05-24 01:02)
 
