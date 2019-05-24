@@ -137,15 +137,11 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
           indirect_lighting += r1 * rwm_v3_scalar_div(cast_ray(world, &sample_ray, cur_depth+1), pdf);
         }
         indirect_lighting = rwm_v3_scalar_div(indirect_lighting, (float) NUM_PT_SAMPLES);
-#endif
+#endif // #if USE_GLOBAL_ILLUMINATION
         color = (rwm_v3_scalar_div(direct_lighting, PI) + 2 * indirect_lighting) * ii.material->albedo;
         if (ii.material->use_texture) {
           color *= get_checkerboard(ii.tex_coord);
-          // color = (rwm_v3_scalar_div(direct_lighting, PI) + 2 * indirect_lighting) * get_checkerboard(ii.tex_coord);
-        } else {
-          // color = (rwm_v3_scalar_div(direct_lighting, PI) + 2 * indirect_lighting) * ii.material->albedo;
         }
-
 #else
         float NdV = MAX(0.0f, rwm_v3_inner(ii.normal, -r->dir));
         // color = get_checkerboard(ii.tex_coord) * ii.normal * NdV;
@@ -171,7 +167,6 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
         refraction_ray.type = RT_REFRACT;
         color += cast_ray(world, &refraction_ray, cur_depth + 1);
       } break;
-#if 1
       case M_RR: {
         Vec3 refract_color = rwm_v3_zero();
         float kr =  fresnel(r->dir, ii.normal, ii.material->ior);
@@ -197,7 +192,6 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
         reflect_color = cast_ray(world, &reflect_ray, cur_depth + 1);
         color += reflect_color * kr + refract_color * (1 - kr);
       } break;
-#endif
       default:
         break;
     }
