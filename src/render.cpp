@@ -8,6 +8,7 @@
 #include "texture.h"
 #include "utils.h"
 #include "metrics.h"
+#include "sampling.h"
 #include "bvh.h"
 
 #define USE_BVH 1
@@ -41,14 +42,6 @@ void create_coordinate_system(Vec3 normal, Vec3 *out_nt, Vec3 *out_nb) {
     );
   }
   *out_nb = rwm_v3_cross(normal, *out_nt);
-}
-
-Vec3 uniform_sample_hemisphere(float r1, float r2) {
-  float sin_theta = rwm_sqrt(1 - SQUARE(r1));
-  float phi = 2 * PI * r2;
-  float x = sin_theta * cosf(phi);
-  float z = sin_theta * sinf(phi);
-  return rwm_v3_init(x, r1, z);
 }
 
 bool trace(World *world, Ray *r, IntersectInfo *out_ii) {
@@ -90,7 +83,6 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
     // Trace visibility ray to each light source
     switch (ii.material->type) {
       case M_DIFFUSE: {
-#if 1
         Vec3 direct_lighting = rwm_v3_zero();
         for (int i = 0; i < world->lights.size(); i++) {
           float dist_from_light;
@@ -117,36 +109,34 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
 #if USE_GLOBAL_ILLUMINATION
         Vec3 Nt, Nb;
         create_coordinate_system(ii.normal, &Nt, &Nb);
-        float pdf = 1/(2*PI);
+        float pdf = uniform_hemisphere_pdf();
 
         for (int n = 0; n < NUM_PT_SAMPLES; n++) {
-          float r1 = distribution(generator);
-          float r2 = distribution(generator);
-          Vec3 sample = uniform_sample_hemisphere(r1, r2);
+          Point2 u = rwm_v2_init(distribution(generator), distribution(generator));
+          Vec3 sample = uniform_sample_hemisphere(u);
           // Transform the sample into the intersection normal coordinate space
           Vec3 sample_normal_space = rwm_v3_init(
-            (sample.x * Nb.x) + (sample.y * ii.normal.x) + (sample.z * Nt.x),
-            (sample.x * Nb.y) + (sample.y * ii.normal.y) + (sample.z * Nt.y),
-            (sample.x * Nb.z) + (sample.y * ii.normal.z) + (sample.z * Nt.z)
+            (Nb.x * sample.x) + (Nt.x * sample.y) + (ii.normal.x * sample.z),
+            (Nb.y * sample.x) + (Nt.y * sample.y) + (ii.normal.y * sample.z),
+            (Nb.z * sample.x) + (Nt.z * sample.y) + (ii.normal.z * sample.z)
           );
           Ray sample_ray = ray_init(
             ii.hit_point + sample_normal_space * BIAS,
             sample_normal_space
           );
           sample_ray.type = RT_GI;
-          indirect_lighting += r1 * rwm_v3_scalar_div(cast_ray(world, &sample_ray, cur_depth+1), pdf);
+
+          // u.e[0] == cos(theta) where theta is the angle between normal and hemisphere sample
+          // We can calculate cos(theta) by rearranging the dot product of sample_normal_space and ii.normal to solve for cos(theta)
+          indirect_lighting += u.e[0] * cast_ray(world, &sample_ray, cur_depth+1);
         }
-        indirect_lighting = rwm_v3_scalar_div(indirect_lighting, (float) NUM_PT_SAMPLES);
+        indirect_lighting = rwm_v3_scalar_div(indirect_lighting, (float) NUM_PT_SAMPLES * pdf);
 #endif // #if USE_GLOBAL_ILLUMINATION
-        color = (rwm_v3_scalar_div(direct_lighting, PI) + 2 * indirect_lighting) * ii.material->albedo;
+        // Finally multiply by lambertian brdf
+        color = (direct_lighting + rwm_v3_scalar_div(indirect_lighting, pdf)) * rwm_v3_scalar_div(ii.material->albedo, PI);
         if (ii.material->use_texture) {
           color *= get_checkerboard(ii.tex_coord);
         }
-#else
-        float NdV = MAX(0.0f, rwm_v3_inner(ii.normal, -r->dir));
-        // color = get_checkerboard(ii.tex_coord) * ii.normal * NdV;
-        color = ii.normal * NdV;
-#endif
       } break;
       case M_REFLECT: {
         Vec3 reflect_dir = rwm_v3_normalize(reflect(r->dir, ii.normal));
