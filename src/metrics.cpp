@@ -43,6 +43,7 @@ void print_run_info() {
 
 void print_post_run_metrics() {
   printf("Render time (rwtm):                     %fs\n\n", rwtm_to_sec(rwtm_since(mtr_start_time)));
+  printf("Rays per second:                        %fR/s\n\n", mtr_num_rays/rwtm_to_sec(rwtm_since(mtr_start_time)));
   printf("Total number of rays:                   %llu\n", mtr_num_rays);
   printf("Total number of primary rays:           %llu\n", mtr_num_primary_rays);
   printf("Total number of GI rays:                %llu\n", mtr_num_gi_rays);
@@ -54,6 +55,7 @@ void print_post_run_metrics() {
   printf("Total number of plane intersections:    %llu\n", mtr_num_plane_isect);
   printf("Total number of triangle tests:         %llu\n", mtr_num_triangle_tests);
   printf("Total number of triangle intersections: %llu\n", mtr_num_triangle_isect);
+  puts("");
 }
 
 void record_ray_metric(Ray *r) {
