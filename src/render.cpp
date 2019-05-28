@@ -106,10 +106,10 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
         }
 
         Vec3 indirect_lighting = rwm_v3_zero();
+        float pdf = uniform_hemisphere_pdf();
 #if USE_GLOBAL_ILLUMINATION
         Vec3 Nt, Nb;
         create_coordinate_system(ii.normal, &Nt, &Nb);
-        float pdf = uniform_hemisphere_pdf();
 
         for (int n = 0; n < NUM_PT_SAMPLES; n++) {
           Point2 u = rwm_v2_init(distribution(generator), distribution(generator));

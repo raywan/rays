@@ -33,12 +33,38 @@ Camera camera_init(Vec3 position, Vec3 target, Vec3 up, float fov, float aperatu
 
 Camera camera_init_default() {
   return camera_init(
-    rwm_v3_init(0.0, 0.0, 0.0), // position
-    rwm_v3_init(0.0, 0.0, -1.0), // target
+    rwm_v3_init(0.0, 1.0, 4.0), // position
+    rwm_v3_init(0.0, 1.0, -1.0), // target
     rwm_v3_init(0.0, 1.0, 0.0), // up
-    43.0f, // fov
+    45.0f, // fov
     2.0f // aperature
   );
+}
+
+Camera create_scene_camera(int camera_shot) {
+  Camera camera;
+
+  if (camera_shot == 0) {
+    camera = camera_init(
+      rwm_v3_init(0.0, 1.0, 1.0), // position
+      rwm_v3_init(0.0, 0.0, -1.0), // target
+      rwm_v3_init(0.0, 1.0, 0.0), // up
+      90.0f, // fov
+      2.0f // aperature
+    );
+  } else if (camera_shot == 1) {
+    camera = camera_init(
+      rwm_v3_init(-1.0, 1.0, 1.0), // position
+      rwm_v3_init(0.0, 0.0, 0.0), // target
+      rwm_v3_init(0.0, 1.0, 0.0), // up
+      90.0f, // fov
+      2.0f // aperature
+    );
+  } else {
+    camera = camera_init_default();
+  }
+
+  return camera;
 }
 
 // For simplicity, instead of using PBRT camera, use the RTiaW camera

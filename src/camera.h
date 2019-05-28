@@ -20,6 +20,7 @@ struct Camera {
 
 Camera camera_init(Vec3 position, Vec3 target, Vec3 up, float fov, float aperature);
 Camera camera_init_default();
+Camera create_scene_camera(int camera_shot);
 
 // For simplicity, instead of using PBRT camera, use the RTiaW camera
 Ray camera_get_ray(Camera *camera, float res_x, float res_y);
