@@ -42,8 +42,8 @@ void print_run_info() {
 }
 
 void print_post_run_metrics() {
-  printf("Render time (rwtm):                     %fs\n\n", rwtm_to_sec(rwtm_since(mtr_start_time)));
-  printf("Rays per second:                        %fR/s\n\n", mtr_num_rays/rwtm_to_sec(rwtm_since(mtr_start_time)));
+  printf("Render time (rwtm):                     %f s\n\n", rwtm_to_sec(rwtm_since(mtr_start_time)));
+  printf("Rays per second:                        %f r/s\n\n", mtr_num_rays/rwtm_to_sec(rwtm_since(mtr_start_time)));
   printf("Total number of rays:                   %llu\n", mtr_num_rays);
   printf("Total number of primary rays:           %llu\n", mtr_num_primary_rays);
   printf("Total number of GI rays:                %llu\n", mtr_num_gi_rays);

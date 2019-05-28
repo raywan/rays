@@ -3,6 +3,63 @@
 
 #include "bvh.h"
 
+void create_cornell_box(World *world) {
+
+  Mesh *bottom_plane = new Mesh;
+  *bottom_plane = mesh_make_plane();
+  mesh_attach_transform(bottom_plane, rwtr_trs(
+    rwm_v3_init(0.0,0.0,0.0),
+    rwm_v3_init(2.0,2.0,2.0),
+    -1, 0)
+  );
+  Mesh *top_plane = new Mesh;
+  *top_plane = mesh_make_plane();
+  mesh_attach_transform(top_plane, rwtr_trs(
+    rwm_v3_init(0.0,2.0,0.0),
+    rwm_v3_init(2.0,2.0,2.0),
+    0, 180)
+  );
+  Mesh *back_plane = new Mesh;
+  *back_plane = mesh_make_plane();
+  mesh_attach_transform(back_plane, rwtr_trs(
+    rwm_v3_init(0.0,0.0,-2.0),
+    rwm_v3_init(2.0,2.0,2.0),
+    0, 90)
+  );
+  Mesh *left_plane = new Mesh;
+  *left_plane = mesh_make_plane();
+  mesh_attach_transform(left_plane, rwtr_trs(
+    rwm_v3_init(-1.5,0.0,0.0),
+    rwm_v3_init(2.0,2.0,2.0),
+    2, -90)
+  );
+  Mesh *right_plane = new Mesh;
+  *right_plane = mesh_make_plane();
+  mesh_attach_transform(right_plane, rwtr_trs(
+    rwm_v3_init(1.5,0.0,0.0),
+    rwm_v3_init(2.0,2.0,2.0),
+    2, 90)
+  );
+  world->meshes.push_back(bottom_plane);
+  world->meshes.push_back(top_plane);
+  world->meshes.push_back(back_plane);
+  world->meshes.push_back(left_plane);
+  world->meshes.push_back(right_plane);
+
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, false});
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, false});
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, false});
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 0.0, 0.0), 0, false});
+  world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(0.0, 1.0, 0.0), 0, false});
+
+  world->lights.push_back({
+    LT_SPHERE,
+    rwm_v3_init(0.0, 1.9, -1.0), // position
+    rwm_v3_init(1.0f, 1.0f, 1.0f), // color
+    5.0f, // intensity
+  });
+}
+
 void create_world(World *world) {
   printf("Loading OBJ files:\n\t");
 
@@ -48,6 +105,9 @@ void create_world(World *world) {
   // world->mesh_materials.push_back({M_REFLECT, rwm_v3_zero()});
   world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(0.8, 0.8, 0.8), 0, false});
   world->mesh_materials.push_back({M_DIFFUSE, rwm_v3_init(1.0, 1.0, 1.0), 0, true});
+
+  // create_cornell_box(world);
+
   puts("Adding lights");
 
   world->lights.push_back({
