@@ -23,7 +23,7 @@ void construct_tiles(std::queue<Tile> *jq) {
   for (int i = 0; i < num_tiles_w; i++) {
     for (int j = 0; j < num_tiles_h; j++) {
       Tile t;
-      t.top_right = rwm_v2_init(i*16, j*16);
+      t.top_right = rwm_v2_init(i*TILE_X, j*TILE_Y);
       jq->push(t);
     }
   }

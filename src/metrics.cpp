@@ -27,6 +27,10 @@ void print_run_info() {
   puts("Hello Rays.");
   puts("========================================================================");
   printf("NUM THREADS:              %d\n", NUM_THREADS);
+  if (NUM_THREADS > 1) {
+    printf("TILE_X:                   %d\n", TILE_X);
+    printf("TILE_Y:                   %d\n", TILE_Y);
+  }
   printf("WIDTH:                    %d\n", WIDTH);
   printf("HEIGHT:                   %d\n", HEIGHT);
   printf("MAX DEPTH:                %d\n", MAX_DEPTH);

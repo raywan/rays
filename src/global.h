@@ -15,8 +15,8 @@
 #define USE_GLOBAL_ILLUMINATION 1
 #define NUM_PT_SAMPLES 1
 
-#define TILE_X 16
-#define TILE_Y 16
+#define TILE_X 1
+#define TILE_Y 1
 #define NUM_THREADS 8
 
 #endif
