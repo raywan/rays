@@ -90,6 +90,7 @@ void stratified_sample_2d(Point2 *out_samples, int nx, int ny, bool jitter) {
     for (int x = 0; x < nx; x++) {
       float jx = jitter ? unif_01(generator) : 0.5f;
       float jy = jitter ? unif_01(generator) : 0.5f;
+
       out_samples->x = MIN((x + jx) * dx, ONE_MINUS_EPSILON);
       out_samples->y = MIN((y + jy) * dy, ONE_MINUS_EPSILON);
       ++out_samples;
@@ -116,4 +117,15 @@ void latin_hypercube(float *samples, int n_samples, int n_dim) {
       std::swap(samples[n_dim * j + i], samples[n_dim * other + i]);
     }
   }
+}
+
+// For Multiple Importance Sampling two distributions
+float mis_balance_heuristic(int nf, float f_pdf, int ng, float g_pdf) {
+  return (nf * f_pdf) / (nf * f_pdf + ng * g_pdf);
+}
+
+float mis_power_heuristic(int nf, float f_pdf, int ng, float g_pdf) {
+  float f = nf * f_pdf;
+  float g = ng * g_pdf;
+  return SQUARE(f) / (SQUARE(f) + SQUARE(g));
 }
