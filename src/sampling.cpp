@@ -64,6 +64,17 @@ Point2 concentric_sample_disk(Point2 u) {
   return r * rwm_v2_init(cosf(theta), sinf(theta));
 }
 
+Vec3 uniform_sample_cone(Point2 u, float cos_theta_max) {
+  float cos_theta = (1 - u.e[0]) + u.e[0] * cos_theta_max;
+  float sin_theta = rwm_sqrt(1 - SQUARE(cos_theta));
+  float phi = u.e[1] * 2 * PI;
+  return rwm_v3_init(cosf(phi) * sin_theta, sinf(phi) * sin_theta, cos_theta);
+}
+
+float uniform_cone_pdf(float cos_theta_max) {
+  return 1/(2 * PI * (1 - cos_theta_max));
+}
+
 void stratified_sample_1d(float *out_samples, int n_samples, bool jitter) {
   float inv_n_samples = 1.0f/n_samples;
   for (int i = 0; i < n_samples; i++) {
