@@ -22,4 +22,8 @@ float uniform_cone_pdf(float cos_theta_max);
 void stratified_sample_1d(float *out_samples, int n_samples, bool jitter);
 void stratified_sample_2d(Point2 *out_samples, int nx, int ny, bool jitter);
 
+// For Multiple Importance Sampling two distributions
+float mis_balance_heuristic(int nf, float f_pdf, int ng, float g_pdf);
+float mis_power_heuristic(int nf, float f_pdf, int ng, float g_pdf);
+
 #endif
