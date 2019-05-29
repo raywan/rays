@@ -132,7 +132,7 @@ Vec3 cast_ray(World *world, Ray *r, int cur_depth) {
         }
         indirect_lighting = rwm_v3_scalar_div(indirect_lighting, (float) NUM_PT_SAMPLES * pdf);
 #endif // #if USE_GLOBAL_ILLUMINATION
-        // Finally multiply by lambertian brdf
+        // Finally multiply by lambertian BRDF
         color = (direct_lighting + rwm_v3_scalar_div(indirect_lighting, pdf)) * rwm_v3_scalar_div(ii.material->albedo, PI);
         if (ii.material->use_texture) {
           color *= get_checkerboard(ii.tex_coord);

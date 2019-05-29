@@ -16,6 +16,9 @@ float cosine_hemisphere_pdf(float cos_theta);
 Point2 uniform_sample_disk(Point2 u);
 Point2 concentric_sample_disk(Point2 u);
 
+Vec3 uniform_sample_cone(Point2 u, float cos_theta_max);
+float uniform_cone_pdf(float cos_theta_max);
+
 void stratified_sample_1d(float *out_samples, int n_samples, bool jitter);
 void stratified_sample_2d(Point2 *out_samples, int nx, int ny, bool jitter);
 
