@@ -56,28 +56,7 @@ int main(int argc, char *argv[]) {
 
   // Initialize the camera
   puts("Initializing camera...");
-  Camera camera;
-  if (camera_shot == 0) {
-#if 0
-    camera = camera_init_default();
-  } else if (camera_shot == 1) {
-#endif
-    camera = camera_init(
-      rwm_v3_init(0.0, 1.0, 1.0), // position
-      rwm_v3_init(0.0, 0.0, -1.0), // target
-      rwm_v3_init(0.0, 1.0, 0.0), // up
-      90.0f, // fov
-      2.0f // aperature
-    );
-  } else if (camera_shot == 2) {
-    camera = camera_init(
-      rwm_v3_init(-1.0, 1.0, 1.0), // position
-      rwm_v3_init(0.0, 0.0, 0.0), // target
-      rwm_v3_init(0.0, 1.0, 0.0), // up
-      90.0f, // fov
-      2.0f // aperature
-    );
-  }
+  Camera camera = create_scene_camera(camera_shot);
 
   // Intialize scene
   World world;

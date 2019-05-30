@@ -10,13 +10,13 @@
 #define REFRACT_BIAS 0.00001f
 
 #define MAX_DEPTH 3
-#define SAMPLES_PER_PIXEL 4
+#define SAMPLES_PER_PIXEL 2048
 
 #define USE_GLOBAL_ILLUMINATION 1
-#define NUM_PT_SAMPLES 16
+#define NUM_PT_SAMPLES 1
 
-#define TILE_X 16
-#define TILE_Y 16
+#define TILE_X 1
+#define TILE_Y 1
 #define NUM_THREADS 8
 
 #endif
