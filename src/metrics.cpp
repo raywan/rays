@@ -27,6 +27,10 @@ void print_run_info() {
   puts("Hello Rays.");
   puts("========================================================================");
   printf("NUM THREADS:              %d\n", NUM_THREADS);
+  if (NUM_THREADS > 1) {
+    printf("TILE_X:                   %d\n", TILE_X);
+    printf("TILE_Y:                   %d\n", TILE_Y);
+  }
   printf("WIDTH:                    %d\n", WIDTH);
   printf("HEIGHT:                   %d\n", HEIGHT);
   printf("MAX DEPTH:                %d\n", MAX_DEPTH);
@@ -42,7 +46,8 @@ void print_run_info() {
 }
 
 void print_post_run_metrics() {
-  printf("Render time (rwtm):                     %fs\n\n", rwtm_to_sec(rwtm_since(mtr_start_time)));
+  printf("Render time (rwtm):                     %f s\n\n", rwtm_to_sec(rwtm_since(mtr_start_time)));
+  printf("Rays per second:                        %f r/s\n\n", mtr_num_rays/rwtm_to_sec(rwtm_since(mtr_start_time)));
   printf("Total number of rays:                   %llu\n", mtr_num_rays);
   printf("Total number of primary rays:           %llu\n", mtr_num_primary_rays);
   printf("Total number of GI rays:                %llu\n", mtr_num_gi_rays);
@@ -54,6 +59,7 @@ void print_post_run_metrics() {
   printf("Total number of plane intersections:    %llu\n", mtr_num_plane_isect);
   printf("Total number of triangle tests:         %llu\n", mtr_num_triangle_tests);
   printf("Total number of triangle intersections: %llu\n", mtr_num_triangle_isect);
+  puts("");
 }
 
 void record_ray_metric(Ray *r) {
