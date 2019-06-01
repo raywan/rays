@@ -4,6 +4,7 @@
 #include <rw/rw_math.h>
 #include "ray.h"
 #include "mesh.h"
+#include "bxdf.h"
 
 struct Sphere {
   Vec3 position; // world space position
@@ -50,6 +51,7 @@ struct IntersectInfo {
   Vec3 color;
   Vec2 tex_coord;
   Material *material;
+  BSDF bsdf;
 };
 
 Sphere sphere_create(Vec3 world_pos, float radius);
