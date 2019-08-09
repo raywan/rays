@@ -710,5 +710,7 @@ MigrationBackup/
 toy
 renders
 *.png
+!screenshots/*.png
 render.png
 build.ninja
+TODO.txt

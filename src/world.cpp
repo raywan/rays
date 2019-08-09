@@ -117,12 +117,12 @@ void create_world(World *world) {
     100.0f, // intensity
   });
 
-  // world->lights.push_back({
-  //   LT_SPHERE,
-  //   rwm_v3_init(-2.0, 2.0, -3.0), // position
-  //   rwm_v3_init(0.0f, 0.0f, 1.0f), // color
-  //   600.0f, // intensity
-  // });
+  world->lights.push_back({
+    LT_SPHERE,
+    rwm_v3_init(-2.0, 2.0, -3.0), // position
+    rwm_v3_init(0.0f, 0.0f, 1.0f), // color
+    600.0f, // intensity
+  });
 
 #if 1
   world->lights.push_back({
